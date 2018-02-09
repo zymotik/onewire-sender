@@ -1,5 +1,5 @@
-# onewire-sender
-Send data from 1 or more DS18B20 sensors to a http endpoint on a schedule
+# OneWire-Sender
+Send data from 1 or more DS18B20 sensors to a http endpoint or MQTT broker on a schedule
 
 # Setup on a Raspberry Pi:
 

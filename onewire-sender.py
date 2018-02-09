@@ -1,38 +1,41 @@
 from w1thermsensor import W1ThermSensor
-import sched, time, json, requests, os, sys
+import sched, time, json, requests, os, sys, config
 
-wait = 60
-api_url = "https://your-endpoint.com/api/sensorslog"
-
-s = sched.scheduler(time.time, time.sleep)
+schedule = sched.scheduler(time.time, time.sleep)
 
 print(time.strftime("%H:%M") + " OneWireSender started.")
 
-def publish_temp_readings(sc):
-	readings = [];
+def collect_temp_readings(sc):
+	clear_screen()
+	readings = []
 	for sensor in W1ThermSensor.get_available_sensors():
-		readings.append({'sensorId': int(sensor.id, 16), 'ambientTemperature': sensor.get_temperature()})
-	
-	if len(readings) > 0:
+		sensor_id = int(sensor.id, 16)
+		temperature = sensor.get_temperature()
+		readings.append({'sensorId': sensor_id, 'ambientTemperature': temperature})
+		if config.mqtt_enabled:
+			publish_mqtt(sensor_id, temperature)
+	if config.http_enabled and len(readings) > 0:
 		send_to_server(list_to_json(readings))
-	else:
-		clear_screen()
+
+	if len(readings) = 0:
 		print(time.strftime("%H:%M") + " No sensors found.")
 	
-	s.enter(wait, 1, publish_temp_readings, (sc,))
+	schedule.enter(config.poll_period_seconds, 1, collect_temp_readings, (sc,))
+
+def publish_mqtt(sensor_id, temperature):
+	print('Publish MQTT coming next.')
+	print(sensor_id + ':' + temperature)
 
 def list_to_json(list_obj):
 	return json.dumps(list_obj)
 	
 def send_to_server(data_string):
-	headers = { "Content-Type": "application/json" }
+	clear_screen()
 	try:
-		r = requests.post(api_url, data=data_string, headers=headers)
-		clear_screen()
-		print(data_string);
+		requests.post(config.http_url, data=data_string, headers=config.http_headers)
+		print(data_string)
 		print(time.strftime("%H:%M") + " Sent.")
 	except:
-		clear_screen()
 		print(sys.exc_info()[0])
 		print(time.strftime("%H:%M") + " Exception sending data.")
 		pass
@@ -41,5 +44,5 @@ def clear_screen():
 	os.system('cls' if os.name == 'nt' else 'clear')
 
 
-s.enter(wait, 1, publish_temp_readings, (s,))
-s.run()
+schedule.enter(config.poll_period_seconds, 1, collect_temp_readings, (schedule,))
+schedule.run()
