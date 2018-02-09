@@ -16,4 +16,5 @@ Run OneWire-Sender when Pi boots up
 
 ## features incoming...
 Configuration file
+
 MQTT support (think: HomeAssistant)
