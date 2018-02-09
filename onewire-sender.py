@@ -17,7 +17,7 @@ def collect_temp_readings(sc):
 	if config.http_enabled and len(readings) > 0:
 		send_to_server(list_to_json(readings))
 
-	if len(readings) = 0:
+	if len(readings) == 0:
 		print(time.strftime("%H:%M") + " No sensors found.")
 	
 	schedule.enter(config.poll_period_seconds, 1, collect_temp_readings, (sc,))
