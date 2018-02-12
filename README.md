@@ -7,6 +7,8 @@ Install librarys (https://github.com/timofurrer/w1thermsensor/blob/master/README
 
     sudo apt-get install python-w1thermsensor
 
+    pip install paho-mqtt
+
 Run OneWire-Sender when Pi boots up
 
     Preferences => Main menu editor => Add LXSession configuration to preferences
