@@ -1,7 +1,7 @@
 import mqtt
 import config
 
-mqtt_conn = {}
+global mqtt_conn
 
 mqtt_conn = mqtt.connect_mqtt(config.mqtt_ipaddress, config.mqtt_port, config.mqtt_username, config.mqtt_password)
 
