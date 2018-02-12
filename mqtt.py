@@ -30,7 +30,12 @@ def on_disconnect(client, userdata, rc):
 
 def publish_temp(mqttc, thermometer, temp):
     topic = "raspberry-pi/w1/thermometer/{}".format(thermometer)
-    (result, mid) = mqttc.publish(topic, temp)
+    try:
+        (result, mid) = mqttc.publish(topic, temp)
+	except:
+		print(sys.exc_info()[0])
+		print(time.strftime("%H:%M") + " Exception publishing mqtt data.")
+		pass
     if result == MQTT_ERR_SUCCESS:
         print("Published {} to {}".format(temp, topic))
     elif result == MQTT_ERR_NO_CONN:
