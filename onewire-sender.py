@@ -1,7 +1,10 @@
 from w1thermsensor import W1ThermSensor
-import sched, time, json, requests, os, sys, config
+import sched, time, json, requests, os, sys
+import config
+import mqtt
 
 schedule = sched.scheduler(time.time, time.sleep)
+mqtt_conn = {}
 
 print(time.strftime("%H:%M") + " OneWireSender started.")
 
@@ -13,7 +16,7 @@ def collect_temp_readings(sc):
 		temperature = sensor.get_temperature()
 		readings.append({'sensorId': sensor_id, 'ambientTemperature': temperature})
 		if config.mqtt_enabled:
-			publish_mqtt(sensor_id, temperature)
+			mqtt.publish_temp(mqtt_conn, sensor_id, temperature)
 	if config.http_enabled and len(readings) > 0:
 		send_to_server(list_to_json(readings))
 
@@ -44,5 +47,11 @@ def clear_screen():
 	os.system('cls' if os.name == 'nt' else 'clear')
 
 
-schedule.enter(config.poll_period_seconds, 1, collect_temp_readings, (schedule,))
-schedule.run()
+def main():
+	if config.mqtt_enabled == True:
+		mqtt_conn = mqtt.connect_mqtt(config.mqtt_ipaddress, config.mqtt_port, config.mqtt_username, config.mqtt_password)
+	schedule.enter(config.poll_period_seconds, 1, collect_temp_readings, (schedule,))
+	schedule.run()
+
+if __name__ == "__main__":
+     main()
