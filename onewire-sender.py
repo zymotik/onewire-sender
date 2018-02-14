@@ -4,10 +4,12 @@ import config
 import mqtt
 
 schedule = sched.scheduler(time.time, time.sleep)
-global mqtt_conn
 
 def collect_temp_readings(sc):
 	clear_screen()
+	if config.mqtt_enabled:
+		mqtt_conn = mqtt.connect_mqtt(config.mqtt_ipaddress, config.mqtt_port, config.mqtt_username, config.mqtt_password)
+
 	readings = []
 	for sensor in W1ThermSensor.get_available_sensors():
 		sensor_id = int(sensor.id, 16)
@@ -15,6 +17,10 @@ def collect_temp_readings(sc):
 		readings.append({'sensorId': sensor_id, 'ambientTemperature': temperature})
 		if config.mqtt_enabled:
 			mqtt.publish_temp(mqtt_conn, sensor_id, temperature)
+
+	if config.mqtt_enabled:
+		mqtt.disconnect_mqtt(mqtt_conn)
+
 	if config.http_enabled and len(readings) > 0:
 		send_to_server(list_to_json(readings))
 
@@ -44,7 +50,5 @@ def clear_screen():
 
 
 print(time.strftime("%H:%M") + " OneWireSender started.")
-if config.mqtt_enabled == True:
-	mqtt_conn = mqtt.connect_mqtt(config.mqtt_ipaddress, config.mqtt_port, config.mqtt_username, config.mqtt_password)
 schedule.enter(config.poll_period_seconds, 1, collect_temp_readings, (schedule,))
 schedule.run()
